@@ -63,6 +63,8 @@ else
 	fi
 fi
 echo "清除yum缓存,并构建元缓存"
-dnf clean all && dnf makecache
+dnf clean all 
+#dnf makecache 
+#初次建立仓库将 dnf makecache 前的注释取消
 echo '查看仓库'
 dnf repolist
