@@ -1,0 +1,30 @@
+name: Sync Kafka To Aliyun
+
+on:
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Login Aliyun ACR
+        run: |
+          echo "${{ secrets.ACR_PASSWORD }}" | docker login \
+          --username="${{ secrets.ACR_USERNAME }}" \
+          --password-stdin \
+          ${{ secrets.ACR_REGISTRY }}
+
+      - name: Pull Kafka
+        run: |
+          docker pull apache/kafka:latest
+
+      - name: Tag Image
+        run: |
+          docker tag apache/kafka:latest \
+          ${{ secrets.ACR_REGISTRY }}/${{ secrets.ACR_NAMESPACE }}/${{ secrets.ACR_REPOSITORY }}:latest
+
+      - name: Push Image
+        run: |
+          docker push \
+          ${{ secrets.ACR_REGISTRY }}/${{ secrets.ACR_NAMESPACE }}/${{ secrets.ACR_REPOSITORY }}:latest
