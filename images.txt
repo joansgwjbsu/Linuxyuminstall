@@ -1,0 +1,4 @@
+php:8-apache
+nginx:latest
+redis:latest
+apache/kafka:latest

@@ -32,16 +32,12 @@ jobs:
 
           while read line; do
             [ -z "$line" ] && continue
-            echo "Pull image: $line"
 
             docker pull "$line"
 
             image_name_tag=$(echo "$line" | awk -F'/' '{print $NF}')
             new_image="$ACR_REGISTRY/$ACR_NAMESPACE/$image_name_tag"
 
-            echo "Tag image: $new_image"
             docker tag "$line" "$new_image"
-
-            echo "Push image: $new_image"
             docker push "$new_image"
           done < images.txt
