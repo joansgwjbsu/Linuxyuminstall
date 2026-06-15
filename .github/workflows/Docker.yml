@@ -5,34 +5,43 @@ on:
   push:
     branches: [ main ]
 
-
 env:
-  ALIYUN_REGISTRY: "${{ secrets.ALIYUN_REGISTRY }}"
-  ALIYUN_NAME_SPACE: "${{ secrets.ALIYUN_NAME_SPACE }}"
-  ALIYUN_REGISTRY_USER: "${{ secrets.ALIYUN_REGISTRY_USER }}"
-  ALIYUN_REGISTRY_PASSWORD: "${{ secrets.ALIYUN_REGISTRY_PASSWORD }}"
+  ACR_REGISTRY: ${{ secrets.ACR_REGISTRY }}
+  ACR_NAMESPACE: ${{ secrets.ACR_NAMESPACE }}
+  ACR_USERNAME: ${{ secrets.ACR_USERNAME }}
+  ACR_PASSWORD: ${{ secrets.ACR_PASSWORD }}
 
 jobs:
-
-  build:
-    name: Pull
+  sync:
+    name: Pull and Push Images
     runs-on: ubuntu-latest
+
     steps:
-    - name: Setup Docker buildx
-      uses: docker/setup-buildx-action@79abd3f86f79a9d68a23c75a09a9a85889262adf
+      - name: Check out code
+        uses: actions/checkout@v4
 
-    - name: Check out code
-      uses: actions/checkout@v2
+      - name: Login Aliyun ACR
+        run: |
+          echo "$ACR_PASSWORD" | docker login "$ACR_REGISTRY" \
+            --username "$ACR_USERNAME" \
+            --password-stdin
 
-    - name: Build and push image Aliyun
-      run: |
-        docker login -u $ALIYUN_REGISTRY_USER -p $ALIYUN_REGISTRY_PASSWORD $ALIYUN_REGISTRY
-        for line in $(cat images.txt); do
-          docker pull $line
-          image_name_tag=$(echo $line | awk -F'/' '{print $NF}')
-          new_image="$ALIYUN_REGISTRY/$ALIYUN_NAME_SPACE/$image_name_tag"
-          echo "docker tag $image $new_image"
-          docker tag $line $new_image
-          echo "docker push $new_image"
-          docker push $new_image
-        done
+      - name: Pull and push images
+        run: |
+          set -e
+
+          while read line; do
+            [ -z "$line" ] && continue
+            echo "Pull image: $line"
+
+            docker pull "$line"
+
+            image_name_tag=$(echo "$line" | awk -F'/' '{print $NF}')
+            new_image="$ACR_REGISTRY/$ACR_NAMESPACE/$image_name_tag"
+
+            echo "Tag image: $new_image"
+            docker tag "$line" "$new_image"
+
+            echo "Push image: $new_image"
+            docker push "$new_image"
+          done < images.txt
