@@ -1,1 +1,1 @@
-prometheus:3.12
+prom/prometheus:main-distroless
