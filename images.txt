@@ -1,1 +1,1 @@
-prom/prometheus:main-distroless
+grafana/grafana-enterprise
