@@ -1,1 +1,2 @@
-ghcr.io/google/cadvisor:0.55.1
+gitlab/gitlab-ce:nightly
+jenkins:2.60.3
